@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { FileText, Wand2, BookOpen, Download } from 'lucide-react';
+import axios from 'axios';
 import FileUpload from './components/FileUpload';
 import ScoreDisplay from './components/ScoreDisplay';
 import { ResumeScore } from './types';
@@ -8,21 +9,35 @@ function App() {
   const [fileName, setFileName] = useState<string | null>(null);
   const [score, setScore] = useState<ResumeScore | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleFileUpload = (file: File) => {
+  const handleFileUpload = async (file: File) => {
     setFileName(file.name);
     setScore(null);
-  };
+    setError(null);
+    
+    const formData = new FormData();
+    formData.append('resume', file);
 
-  const analyzeResume = () => {
-    setLoading(true);
-    // Simulated scoring - in a real application, this would analyze the actual resume content
-    setTimeout(() => {
-      setScore({
-        score: 85
+    try {
+      setLoading(true);
+      const response = await axios.post('https://resume-review-backend.onrender.com/api/upload-resume-with-diff', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
+
+      setScore({
+        score: response.data.atsScore.atsScore,
+        strengths: response.data.atsScore.strengths,
+        improvements: response.data.atsScore.improvements
+      });
+    } catch (err) {
+      setError('Failed to analyze resume. Please try again.');
+      console.error('Error:', err);
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -69,26 +84,23 @@ function App() {
                 </div>
               )}
 
-              <div className="mt-8 flex justify-center">
-                <button
-                  onClick={analyzeResume}
-                  disabled={!fileName || loading}
-                  className="flex items-center px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all transform hover:scale-105 disabled:hover:scale-100 shadow-md"
-                >
-                  <Wand2 className="w-5 h-5 mr-2" />
-                  {loading ? (
-                    <span className="flex items-center">
-                      <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                      </svg>
-                      Analyzing...
-                    </span>
-                  ) : (
-                    'Analyze Resume'
-                  )}
-                </button>
-              </div>
+              {error && (
+                <div className="mt-4 text-center text-red-600 bg-red-50 p-3 rounded-lg">
+                  {error}
+                </div>
+              )}
+
+              {loading && (
+                <div className="mt-8 flex justify-center">
+                  <div className="flex items-center space-x-2 text-blue-600">
+                    <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Analyzing your resume...</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -96,12 +108,12 @@ function App() {
             <div className="border-t border-gray-100 bg-gradient-to-b from-white to-blue-50 p-8">
               <div className="max-w-2xl mx-auto">
                 <ScoreDisplay score={score} />
-                <div className="mt-8 flex justify-center">
+                {/* <div className="mt-8 flex justify-center">
                   <button className="flex items-center px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all transform hover:scale-105 shadow-md">
                     <Download className="w-5 h-5 mr-2" />
                     Download Optimization Report
                   </button>
-                </div>
+                </div> */}
               </div>
             </div>
           )}

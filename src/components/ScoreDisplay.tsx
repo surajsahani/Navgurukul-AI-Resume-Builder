@@ -21,24 +21,6 @@ const ScoreDisplay: React.FC<ScoreDisplayProps> = ({ score }) => {
     return 'Requires significant improvements to be competitive.';
   };
 
-  const getStrengths = (value: number): string[] => {
-    const strengths = [
-      'Clear professional experience section',
-      'Well-structured format',
-      'Quantifiable achievements'
-    ];
-    return strengths;
-  };
-
-  const getImprovements = (value: number): string[] => {
-    const improvements = [
-      'Add more industry-specific keywords',
-      'Enhance skills section with technical competencies',
-      'Include measurable results and achievements'
-    ];
-    return improvements;
-  };
-
   const color = getScoreColor(score.score);
 
   return (
@@ -65,7 +47,7 @@ const ScoreDisplay: React.FC<ScoreDisplayProps> = ({ score }) => {
             Strengths
           </h3>
           <ul className="space-y-3">
-            {getStrengths(score.score).map((strength, index) => (
+            {score.strengths.map((strength, index) => (
               <li key={index} className="flex items-start">
                 <span className="text-green-600 mr-2">•</span>
                 <span className="text-green-900">{strength}</span>
@@ -80,7 +62,7 @@ const ScoreDisplay: React.FC<ScoreDisplayProps> = ({ score }) => {
             Suggested Improvements
           </h3>
           <ul className="space-y-3">
-            {getImprovements(score.score).map((improvement, index) => (
+            {score.improvements.map((improvement, index) => (
               <li key={index} className="flex items-start">
                 <span className="text-amber-600 mr-2">•</span>
                 <span className="text-amber-900">{improvement}</span>
